@@ -51,14 +51,35 @@ strands show <id>
 
 ## Claude Code session TOC
 
-strands can install a `SessionStart` hook into the repo's `.claude/settings.json`
-so every new Claude Code session starts with your strand list injected as
-in-context additional context. The TOC acts as a lightweight lookup table:
-Claude sees every strand's id, creation time, and topic, and pulls bodies on
-demand with `strands show <id>`. It replaces the file-based `toc.md` flow from
+strands can install a `SessionStart` hook into your Claude Code settings so
+every new session starts with your strand list injected as in-context
+additional context. The TOC acts as a lightweight lookup table: Claude sees
+every strand's id, creation time, and topic, and pulls bodies on demand with
+`strands show <id>`. It replaces the file-based `toc.md` flow from
 [context-shelf](https://github.com/Pinnacle-Solutions-Group/context-shelf).
 
-`strands init` prompts for the `--limit` value interactively on a TTY:
+**Recommended: install once, globally.**
+
+```bash
+strands install-hook             # writes to ~/.claude/settings.json (default)
+strands install-hook --limit 200 # cap the TOC at 200 entries
+```
+
+The global hook is guarded with a `.strands/strands.db` existence check, so it
+silently no-ops in any project that hasn't run `strands init`. Run `strands
+init` in each repo where you want the TOC — from that point on every new
+Claude session there auto-loads the strand list.
+
+**Project-local install**, if you only want the hook in one repo:
+
+```bash
+strands install-hook --global=false   # writes to ./.claude/settings.json
+```
+
+**From `strands init`.** On a TTY, `strands init` prompts for the `--limit`
+value interactively and offers to install the hook at the same time. The
+install is project-local from `init` — use `strands install-hook` afterward if
+you want the global version instead (or in addition).
 
 - `0` — show all strands (recommended — unbounded like the old toc.md).
 - `N` — cap at the N most recent strands if history gets noisy later.
@@ -71,18 +92,11 @@ strands init --limit 200   # bypass the prompt
 strands init --no-hook     # skip hook install entirely
 ```
 
-For repos that already have a strands db, retro-install or re-configure the
-hook at any time:
-
-```bash
-strands install-hook             # --limit 0, unbounded
-strands install-hook --limit 200 # cap the TOC at 200 entries
-```
-
-`install-hook` is idempotent. It merges into any existing `.claude/settings.json`
-without touching unrelated hooks or other top-level fields, and re-running with
-a different `--limit` replaces the prior strands hook in place rather than
-appending a duplicate.
+`install-hook` is idempotent regardless of scope. It merges into any existing
+`settings.json` without touching unrelated hooks or other top-level fields,
+and re-running with a different `--limit` replaces the prior strands hook in
+place rather than appending a duplicate. If you install both globally and
+project-locally, the TOC will print twice per session — pick one.
 
 ## Data model
 
@@ -107,7 +121,7 @@ Schema lives at `internal/db/schema.sql` and is embedded in the binary via
 | Command | Purpose |
 |---|---|
 | `strands init` | Create `.strands/` and initialize the database. Non-idempotent — refuses to re-init so accidental runs are visible. On a TTY, also offers to install the Claude Code SessionStart hook. |
-| `strands install-hook` | Install or update the Claude Code `SessionStart` hook that injects the strand TOC as in-context additional context. Idempotent — safe to re-run with a new `--limit`. |
+| `strands install-hook` | Install or update the Claude Code `SessionStart` hook that injects the strand TOC as in-context additional context. Defaults to global (`~/.claude/settings.json`); pass `--global=false` for project-local. Guarded with a `.strands/strands.db` existence check so it no-ops in non-strands projects. Idempotent — safe to re-run with a new `--limit`. |
 | `strands ingest <file\|->` | Insert a strand from a file or stdin. Requires `--topic`. |
 | `strands list` | List strands newest first. Filter with `--bead <id>`. |
 | `strands show <id>` | Show a single strand by ID or unique prefix. |

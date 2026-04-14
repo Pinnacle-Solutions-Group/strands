@@ -24,9 +24,13 @@ const (
 
 // Command returns the shell command string the SessionStart hook will run.
 // The printf header makes the injected context self-describing to Claude.
+// The '.strands/strands.db' existence check guards global installs so the
+// hook silently no-ops in projects that never ran 'strands init' — without
+// the guard, every non-strands repo would get a 'db not found' error
+// injected as additional context on session start.
 func Command(limit int) string {
 	return fmt.Sprintf(
-		`printf '## Strands TOC — lookup body via: strands show <id>\n\n'; strands list --limit %d`,
+		`if [ -f .strands/strands.db ]; then printf '## Strands TOC — lookup body via: strands show <id>\n\n'; strands list --limit %d; fi`,
 		limit,
 	)
 }

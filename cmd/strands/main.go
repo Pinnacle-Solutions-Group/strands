@@ -88,21 +88,25 @@ func newInitCmd() *cobra.Command {
 
 func newInstallHookCmd() *cobra.Command {
 	var limit int
+	var global bool
 
 	cmd := &cobra.Command{
 		Use:   "install-hook",
-		Short: "Install the Claude Code SessionStart hook into .claude/settings.json",
-		Long: "install-hook writes (or updates) a SessionStart hook in the current repo's " +
-			".claude/settings.json so every new Claude Code session starts with the strands " +
-			"topic TOC injected as additional context. Safe to re-run — existing strands hooks " +
-			"are replaced so flags like --limit take effect; other hooks are left untouched.",
+		Short: "Install the Claude Code SessionStart hook (global by default)",
+		Long: "install-hook writes (or updates) a SessionStart hook in ~/.claude/settings.json " +
+			"by default, so every Claude Code session — in any repo with a .strands/ db — auto-" +
+			"loads the strand topic TOC as in-context additional context. The hook is guarded " +
+			"with a .strands/strands.db existence check so it silently no-ops in non-strands " +
+			"projects. Pass --local to install into the current repo's .claude/settings.json " +
+			"instead. Safe to re-run — existing strands hooks are replaced so flags like --limit " +
+			"take effect; other hooks are left untouched.",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cwd, err := os.Getwd()
+			root, label, err := resolveInstallRoot(global)
 			if err != nil {
 				return err
 			}
-			replaced, err := claudehook.Install(cwd, limit)
+			replaced, err := claudehook.Install(root, limit)
 			if err != nil {
 				return err
 			}
@@ -110,12 +114,32 @@ func newInstallHookCmd() *cobra.Command {
 			if replaced {
 				verb = "updated"
 			}
-			fmt.Printf("%s Claude Code SessionStart hook (.claude/settings.json, --limit %d)\n", verb, limit)
+			fmt.Printf("%s Claude Code SessionStart hook (%s, --limit %d)\n", verb, label, limit)
 			return nil
 		},
 	}
 	cmd.Flags().IntVar(&limit, "limit", 0, "strand limit for the SessionStart TOC hook (0 = unlimited)")
+	cmd.Flags().BoolVar(&global, "global", true, "install to ~/.claude/settings.json (every repo); pass --global=false for project-local install")
 	return cmd
+}
+
+// resolveInstallRoot returns the directory whose .claude/settings.json the
+// installer should target. Global mode uses $HOME so the hook applies to every
+// Claude session. Local mode uses cwd so the hook only applies in this repo.
+// The returned label is a human-readable path for the confirmation message.
+func resolveInstallRoot(global bool) (root, label string, err error) {
+	if global {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", "", err
+		}
+		return home, "~/.claude/settings.json", nil
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", "", err
+	}
+	return cwd, ".claude/settings.json", nil
 }
 
 // resolveHookLimit decides what --limit value to bake into the SessionStart

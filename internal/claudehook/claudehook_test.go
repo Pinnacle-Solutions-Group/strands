@@ -159,6 +159,19 @@ func TestCommand_IncludesHeaderAndLimit(t *testing.T) {
 	}
 }
 
+func TestCommand_GuardsOnDbExistence(t *testing.T) {
+	// The guard is what makes global install safe: in projects that never
+	// ran 'strands init', the hook must silently no-op instead of injecting
+	// a 'db not found' error as additional context.
+	got := Command(0)
+	if !strings.Contains(got, "if [ -f .strands/strands.db ]") {
+		t.Errorf("Command missing .strands/strands.db existence guard: %q", got)
+	}
+	if !strings.Contains(got, "; fi") {
+		t.Errorf("Command guard not closed: %q", got)
+	}
+}
+
 // ---- helpers ----
 
 func readSettings(t *testing.T, root string) map[string]any {
