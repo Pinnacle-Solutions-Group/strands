@@ -11,8 +11,8 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 
-	"github.com/kevinmrohr/strands/internal/claudehook"
-	"github.com/kevinmrohr/strands/internal/db"
+	"github.com/Pinnacle-Solutions-Group/strands/internal/claudehook"
+	"github.com/Pinnacle-Solutions-Group/strands/internal/db"
 )
 
 func main() {

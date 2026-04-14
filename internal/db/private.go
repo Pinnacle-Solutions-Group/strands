@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/kevinmrohr/strands/internal/ids"
+	"github.com/Pinnacle-Solutions-Group/strands/internal/ids"
 )
 
 // ErrAlreadyPrivate is returned when attempting to flag a strand that is

@@ -1,4 +1,4 @@
-module github.com/kevinmrohr/strands
+module github.com/Pinnacle-Solutions-Group/strands
 
 go 1.26.1
 

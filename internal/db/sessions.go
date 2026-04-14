@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/kevinmrohr/strands/internal/ids"
+	"github.com/Pinnacle-Solutions-Group/strands/internal/ids"
 )
 
 // CreateSession inserts a new session row and returns its id.

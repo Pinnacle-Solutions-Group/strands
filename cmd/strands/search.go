@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/kevinmrohr/strands/internal/db"
+	"github.com/Pinnacle-Solutions-Group/strands/internal/db"
 )
 
 func newSearchCmd() *cobra.Command {

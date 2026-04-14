@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kevinmrohr/strands/internal/ids"
+	"github.com/Pinnacle-Solutions-Group/strands/internal/ids"
 )
 
 // Strand is the full record of a stored conversation chunk.

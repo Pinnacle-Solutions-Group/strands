@@ -14,7 +14,7 @@ It is a single pure-Go binary — no CGO, no external services.
 ## Install
 
 ```bash
-go install github.com/kevinmrohr/strands/cmd/strands@latest
+go install github.com/Pinnacle-Solutions-Group/strands/cmd/strands@latest
 ```
 
 Or from a checkout:
