@@ -13,11 +13,29 @@ It is a single pure-Go binary — no CGO, no external services.
 
 ## Install
 
+**Recommended (macOS / Linux):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Pinnacle-Solutions-Group/strands/main/scripts/install.sh | bash
+```
+
+The installer downloads the latest prebuilt binary from GitHub releases,
+verifies its SHA256 against `checksums.txt`, and installs it to
+`/usr/local/bin` if writable, otherwise `$HOME/.local/bin`. Both are on the
+default macOS PATH (via `path_helper`) even in non-interactive shells, so the
+Claude Code `SessionStart` hook can find `strands` without any profile magic.
+
+**With Go (any platform):**
+
 ```bash
 go install github.com/Pinnacle-Solutions-Group/strands/cmd/strands@latest
 ```
 
-Or from a checkout:
+Installs to `$GOBIN` (or `$(go env GOPATH)/bin`, default `~/go/bin`). Make
+sure that directory is on your `PATH` in the non-interactive shell environment
+Claude Code hooks run under, or the SessionStart TOC hook will silently fail.
+
+**From a checkout:**
 
 ```bash
 go build -o strands ./cmd/strands
