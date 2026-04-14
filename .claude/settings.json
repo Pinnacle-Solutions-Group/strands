@@ -20,6 +20,15 @@
           }
         ],
         "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "printf '## Strands TOC — lookup body via: strands show <id>\\n\\n'; strands list --limit 0",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
       }
     ]
   }
