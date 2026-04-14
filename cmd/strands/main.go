@@ -33,6 +33,7 @@ func main() {
 	root.AddCommand(newSearchCmd())
 	root.AddCommand(newPrivateCmd())
 	root.AddCommand(newInstallHookCmd())
+	root.AddCommand(newScrubShelfHooksCmd())
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
