@@ -26,7 +26,10 @@ go build -o strands ./cmd/strands
 ## Quick start
 
 ```bash
-# Create .strands/ and the database in the current repo
+# Create .strands/ and the database in the current repo.
+# On a TTY, init also offers to install a Claude Code SessionStart hook
+# that injects the strand TOC into every new session — see "Claude Code
+# session TOC" below. Non-interactive shells default to --limit 0.
 strands init
 
 # Ingest a markdown chunk as a new strand
@@ -45,6 +48,41 @@ strands list --bead bd-42
 strands search 'topic:auth OR jwt*'
 strands show <id>
 ```
+
+## Claude Code session TOC
+
+strands can install a `SessionStart` hook into the repo's `.claude/settings.json`
+so every new Claude Code session starts with your strand list injected as
+in-context additional context. The TOC acts as a lightweight lookup table:
+Claude sees every strand's id, creation time, and topic, and pulls bodies on
+demand with `strands show <id>`. It replaces the file-based `toc.md` flow from
+[context-shelf](https://github.com/Pinnacle-Solutions-Group/context-shelf).
+
+`strands init` prompts for the `--limit` value interactively on a TTY:
+
+- `0` — show all strands (recommended — unbounded like the old toc.md).
+- `N` — cap at the N most recent strands if history gets noisy later.
+- `s` — skip; you can install the hook later with `strands install-hook`.
+
+Non-interactive init (CI, scripts) defaults to `--limit 0`. Flags:
+
+```bash
+strands init --limit 200   # bypass the prompt
+strands init --no-hook     # skip hook install entirely
+```
+
+For repos that already have a strands db, retro-install or re-configure the
+hook at any time:
+
+```bash
+strands install-hook             # --limit 0, unbounded
+strands install-hook --limit 200 # cap the TOC at 200 entries
+```
+
+`install-hook` is idempotent. It merges into any existing `.claude/settings.json`
+without touching unrelated hooks or other top-level fields, and re-running with
+a different `--limit` replaces the prior strands hook in place rather than
+appending a duplicate.
 
 ## Data model
 
@@ -68,7 +106,8 @@ Schema lives at `internal/db/schema.sql` and is embedded in the binary via
 
 | Command | Purpose |
 |---|---|
-| `strands init` | Create `.strands/` and initialize the database. Non-idempotent — refuses to re-init so accidental runs are visible. |
+| `strands init` | Create `.strands/` and initialize the database. Non-idempotent — refuses to re-init so accidental runs are visible. On a TTY, also offers to install the Claude Code SessionStart hook. |
+| `strands install-hook` | Install or update the Claude Code `SessionStart` hook that injects the strand TOC as in-context additional context. Idempotent — safe to re-run with a new `--limit`. |
 | `strands ingest <file\|->` | Insert a strand from a file or stdin. Requires `--topic`. |
 | `strands list` | List strands newest first. Filter with `--bead <id>`. |
 | `strands show <id>` | Show a single strand by ID or unique prefix. |
@@ -90,9 +129,10 @@ don't want the sidecar committed.
 ## Project layout
 
 ```
-cmd/strands/       # cobra CLI entry points
-internal/db/       # schema, open/init, CRUD, FTS search, private store
-internal/ids/      # strand id generation
+cmd/strands/          # cobra CLI entry points
+internal/db/          # schema, open/init, CRUD, FTS search, private store
+internal/ids/         # strand id generation
+internal/claudehook/  # Claude Code SessionStart hook installer
 ```
 
 ## Development
